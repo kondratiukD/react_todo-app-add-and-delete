@@ -7,14 +7,17 @@ type Props = {
   onDeleteTodo: (value: number) => Promise<void>;
 };
 
-export const TodoItem: React.FC<Props> = ({ todo, onDeleteTodo }) => {
+export const TodoItem: React.FC<Props> = ({
+  todo: { id, title, completed },
+  onDeleteTodo,
+}) => {
   const [deletedTodoId, setDeletedTodoId] = useState<number | null>(null);
 
   const handleDelete = async () => {
-    setDeletedTodoId(todo.id);
+    setDeletedTodoId(id);
 
     try {
-      await onDeleteTodo(todo.id);
+      await onDeleteTodo(id);
     } finally {
       setDeletedTodoId(null);
     }
@@ -23,20 +26,20 @@ export const TodoItem: React.FC<Props> = ({ todo, onDeleteTodo }) => {
   return (
     <div
       data-cy="Todo"
-      className={classNames('todo', { completed: todo.completed })}
+      className={classNames('todo', { completed: completed })}
     >
       {/* eslint-disable-next-line jsx-a11y/label-has-associated-control*/}
-      <label className="todo__status-label" htmlFor={`input-${todo.id}`}>
+      <label className="todo__status-label" htmlFor={`input-${id}`}>
         <input
-          id={`input-${todo.id}`}
+          id={`input-${id}`}
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
-          checked={todo.completed}
+          checked={completed}
         />
       </label>
       <span data-cy="TodoTitle" className="todo__title">
-        {todo.title}
+        {title}
       </span>
       {/* Remove button appears only on hover */}
       <button
@@ -44,12 +47,12 @@ export const TodoItem: React.FC<Props> = ({ todo, onDeleteTodo }) => {
         className="todo__remove"
         data-cy="TodoDelete"
         onClick={handleDelete}
-        disabled={deletedTodoId === todo.id}
+        disabled={deletedTodoId === id}
       >
         ×
       </button>
       {/* overlay will cover the todo while it is being deleted or updated */}
-      {deletedTodoId === todo.id && (
+      {deletedTodoId === id && (
         <div data-cy="TodoLoader" className="modal overlay is-active">
           <div className="modal-background has-background-white-ter" />
           <div className="loader" />

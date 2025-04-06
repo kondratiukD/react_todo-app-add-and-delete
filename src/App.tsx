@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-/* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import { Todo } from './types/Todo';
@@ -13,10 +11,6 @@ import { ErrorType } from './types/ErrorType';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [deletedCompletedId, setDeletedCompletedId] = useState<number[] | null>(
-    null,
-  );
-  const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [filter, setFilter] = useState<Filter>(Filter.All);
   const [errorMessage, setErrorMessage] = useState<ErrorType>(
     ErrorType.DEFAULT,
@@ -52,12 +46,8 @@ export const App: React.FC = () => {
 
   const visibleTodo = filteredTodos.length > 0;
 
-  const addTodo = ({ id, userId, title, completed }: Todo) => {
+  const addTodo = ({ userId, title, completed }: Todo) => {
     setLoading(true);
-
-    const newTempTodo = { id, userId, title, completed };
-
-    setTempTodo(newTempTodo);
 
     return todoServices
       .createTodo({ title, userId, completed })
@@ -66,10 +56,7 @@ export const App: React.FC = () => {
         setErrorMessage(ErrorType.ADD);
         throw error;
       })
-      .finally(() => {
-        setLoading(false);
-        setTempTodo(null);
-      });
+      .finally(() => setLoading(false));
   };
 
   const deleteTodo = (todoId: number) => {
@@ -84,17 +71,13 @@ export const App: React.FC = () => {
         setErrorMessage(ErrorType.DELETE);
         throw error;
       })
-      .finally(() => {
-        setLoading(false);
-      });
+      .finally(() => setLoading(false));
   };
 
   const clearCompleted = () => {
     const todosCompletedId = todos
       .filter(todo => todo.completed)
       .map(todo => todo.id);
-
-    setDeletedCompletedId(todosCompletedId);
 
     const deleteCompleted = todosCompletedId.map(id => deleteTodo(id));
 
@@ -134,8 +117,6 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      {/* DON'T use conditional rendering to hide the notification */}
-      {/* Add the 'hidden' class to hide the message smoothly */}
       <div
         data-cy="ErrorNotification"
         className={classNames(
