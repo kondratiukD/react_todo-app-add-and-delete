@@ -11,11 +11,12 @@ import { ErrorType } from './types/ErrorType';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [filter, setFilter] = useState<Filter>(Filter.All);
   const [errorMessage, setErrorMessage] = useState<ErrorType>(
     ErrorType.DEFAULT,
   );
-  const [loading, setLoading] = useState<boolean>(false);
+  const [deletingTodoId, setDeletingTodoId] = useState<number | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -29,8 +30,7 @@ export const App: React.FC = () => {
       .catch(() => {
         setErrorMessage(ErrorType.LOADING);
         setTimeout(() => setErrorMessage(ErrorType.DEFAULT), 3000);
-      })
-      .finally(() => setLoading(false));
+      });
   }, []);
 
   const filteredTodos = useMemo(() => {
@@ -44,10 +44,10 @@ export const App: React.FC = () => {
     }
   }, [todos, filter]);
 
-  const visibleTodo = filteredTodos.length > 0;
+  const addTodo = ({ id, userId, title, completed }: Todo) => {
+    const newTempTodo = { id, userId, title, completed };
 
-  const addTodo = ({ userId, title, completed }: Todo) => {
-    setLoading(true);
+    setTempTodo(newTempTodo);
 
     return todoServices
       .createTodo({ title, userId, completed })
@@ -56,11 +56,13 @@ export const App: React.FC = () => {
         setErrorMessage(ErrorType.ADD);
         throw error;
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setTempTodo(null);
+      });
   };
 
   const deleteTodo = (todoId: number) => {
-    setLoading(true);
+    setDeletingTodoId(todoId);
 
     return todoServices
       .deleteTodo(todoId)
@@ -71,7 +73,9 @@ export const App: React.FC = () => {
         setErrorMessage(ErrorType.DELETE);
         throw error;
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setDeletingTodoId(null);
+      });
   };
 
   const clearCompleted = () => {
@@ -79,9 +83,7 @@ export const App: React.FC = () => {
       .filter(todo => todo.completed)
       .map(todo => todo.id);
 
-    const deleteCompleted = todosCompletedId.map(id => deleteTodo(id));
-
-    Promise.all(deleteCompleted);
+    todosCompletedId.forEach(completedTodo => deleteTodo(completedTodo));
   };
 
   if (!todoServices.USER_ID) {
@@ -95,7 +97,7 @@ export const App: React.FC = () => {
       <div className="todoapp__content">
         <TodoForm
           inputRef={inputRef}
-          isLoading={loading}
+          isLoading={!!tempTodo}
           setErrorMessage={setErrorMessage}
           addTodo={addTodo}
         />
@@ -103,18 +105,18 @@ export const App: React.FC = () => {
         <TodoList
           todos={filteredTodos}
           onDeleteTodo={deleteTodo}
-          loading={loading}
+          tempTodo={tempTodo}
+          isLoading={!!tempTodo}
+          deletingTodoId={deletingTodoId}
         />
 
-        {visibleTodo && (
-          <Footer
-            currentFilter={filter}
-            setFilter={setFilter}
-            activeTodos={activeTodos.length}
-            hasCompletedTodos={hasCompletedTodos}
-            clearCompleted={clearCompleted}
-          />
-        )}
+        <Footer
+          currentFilter={filter}
+          setFilter={setFilter}
+          activeTodos={activeTodos.length}
+          hasCompletedTodos={hasCompletedTodos}
+          clearCompleted={clearCompleted}
+        />
       </div>
 
       <div

@@ -1,27 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Todo } from '../../types/Todo';
 import classNames from 'classnames';
 
 type Props = {
   todo: Todo;
   onDeleteTodo: (value: number) => Promise<void>;
+  isLoading: boolean;
+  isBeingDeleted: boolean;
 };
 
 export const TodoItem: React.FC<Props> = ({
   todo: { id, title, completed },
+  isLoading,
+  isBeingDeleted,
   onDeleteTodo,
 }) => {
-  const [deletedTodoId, setDeletedTodoId] = useState<number | null>(null);
-
-  const handleDelete = async () => {
-    setDeletedTodoId(id);
-
-    try {
-      await onDeleteTodo(id);
-    } finally {
-      setDeletedTodoId(null);
-    }
+  const handleDelete = () => {
+    onDeleteTodo(id);
   };
+
+  const shouldShowLoader = (!id && isLoading) || isBeingDeleted;
 
   return (
     <div
@@ -47,12 +45,12 @@ export const TodoItem: React.FC<Props> = ({
         className="todo__remove"
         data-cy="TodoDelete"
         onClick={handleDelete}
-        disabled={deletedTodoId === id}
+        disabled={isBeingDeleted}
       >
         ×
       </button>
       {/* overlay will cover the todo while it is being deleted or updated */}
-      {deletedTodoId === id && (
+      {shouldShowLoader && (
         <div data-cy="TodoLoader" className="modal overlay is-active">
           <div className="modal-background has-background-white-ter" />
           <div className="loader" />

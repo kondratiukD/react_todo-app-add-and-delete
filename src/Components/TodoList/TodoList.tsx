@@ -5,10 +5,18 @@ import { TodoItem } from '../TodoItem/TodoItem';
 type Props = {
   todos: Todo[];
   onDeleteTodo: (value: number) => Promise<void>;
-  loading: boolean;
+  tempTodo: Todo | null;
+  isLoading: boolean;
+  deletingTodoId: number | null;
 };
 
-export const TodoList: React.FC<Props> = ({ todos, onDeleteTodo, loading }) => {
+export const TodoList: React.FC<Props> = ({
+  todos,
+  onDeleteTodo,
+  tempTodo,
+  isLoading,
+  deletingTodoId,
+}) => {
   return (
     <section className="todoapp__main" data-cy="TodoList">
       {todos.map(todo => (
@@ -16,9 +24,19 @@ export const TodoList: React.FC<Props> = ({ todos, onDeleteTodo, loading }) => {
           key={todo.id}
           todo={todo}
           onDeleteTodo={onDeleteTodo}
-          loading={loading}
+          isLoading={isLoading}
+          isBeingDeleted={deletingTodoId === todo.id}
         />
       ))}
+
+      {tempTodo && (
+        <TodoItem
+          key={tempTodo.id}
+          todo={tempTodo}
+          isLoading={true}
+          isBeingDeleted={false}
+        />
+      )}
     </section>
   );
 };
