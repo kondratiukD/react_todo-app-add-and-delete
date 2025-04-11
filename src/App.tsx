@@ -110,13 +110,15 @@ export const App: React.FC = () => {
           deletingTodoId={deletingTodoId}
         />
 
-        <Footer
-          currentFilter={filter}
-          setFilter={setFilter}
-          activeTodos={activeTodos.length}
-          hasCompletedTodos={hasCompletedTodos}
-          clearCompleted={clearCompleted}
-        />
+        {todos.length > 0 && (
+          <Footer
+            currentFilter={filter}
+            setFilter={setFilter}
+            activeTodos={activeTodos.length}
+            hasCompletedTodos={hasCompletedTodos}
+            clearCompleted={clearCompleted}
+          />
+        )}
       </div>
 
       <div
